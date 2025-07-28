@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ธนาคารขยะ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">ธนาคารขยะ</h1>
+                <p class="text-gray-600">โรงเรียนสาธิตเทศบาลนครระยอง (วัดตรีรัตนาราม)</p>
+                <p class="text-sm text-gray-500 mt-2">เข้าสู่ระบบสำหรับผู้ดูแล</p>
+            </div>
+            
+            <form onsubmit="login(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้ใช้</label>
+                    <input type="text" id="username" required placeholder="กรอกชื่อผู้ใช้" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
+                    <input type="password" id="password" required placeholder="กรอกรหัสผ่าน" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <button type="submit" class="w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">เข้าสู่ระบบ</button>
+            </form>
+            
+            <div id="loginError" class="mt-4 p-3 bg-red-100 text-red-700 rounded-lg hidden">
+                ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+            </div>
+            
+
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="container mx-auto px-4 py-8 hidden">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="text-center mb-4">
+                <h1 class="text-3xl font-bold text-gray-800">ธนาคารขยะ</h1>
+                <p class="text-lg font-medium text-purple-600 mt-2">ปีการศึกษา 1/2568</p>
+            </div>
+            <p class="text-gray-600 text-center mb-4">โรงเรียนสาธิตเทศบาลนครระยอง (วัดตรีรัตนาราม)</p>
+            <div class="flex items-center justify-center">
+                <div class="text-center">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span id="currentUser"></span>
+                    </div>
+                    <div class="text-xs text-gray-500" id="loginTime"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-8">
+            <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="showTab('students')" id="studentsTab" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">จัดการนักเรียน</button>
+                <button onclick="showTab('transaction')" id="transactionTab" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">ฝาก/ถอนเงิน</button>
+                <button onclick="showTab('summary')" id="summaryTab" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">สรุปรายวัน</button>
+                <button onclick="showTab('history')" id="historyTab" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">ประวัติการทำรายการ</button>
+                <button onclick="showTab('balance')" id="balanceTab" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">ยอดคงเหลือ</button>
+
+                <button onclick="exportData()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">ส่งออกข้อมูล CSV</button>
+                <button onclick="logout()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <!-- Students Management Tab -->
+        <div id="studentsContent" class="tab-content">
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <!-- Add Student Form -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">เพิ่มสมาชิกธนาคารขยะ</h2>
+                    <form onsubmit="addStudent(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น</label>
+                            <select id="studentGrade" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">-- เลือกระดับชั้น --</option>
+                                <option value="อ.1">อ.1</option>
+                                <option value="อ.2">อ.2</option>
+                                <option value="อ.3">อ.3</option>
+                                <option value="ป.1">ป.1</option>
+                                <option value="ป.2">ป.2</option>
+                                <option value="ป.3">ป.3</option>
+                                <option value="ป.4">ป.4</option>
+                                <option value="ป.5">ป.5</option>
+                                <option value="ป.6">ป.6</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน</label>
+                            <select id="studentRoom" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">-- เลือกห้องเรียน --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล (ไม่มีคำนำหน้า เช่น: ตะวัน จันทรา)</label>
+                            <input type="text" id="studentName" required placeholder="กรอกชื่อ-นามสกุล" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เข้าร่วม</label>
+                            <input type="date" id="joinDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <button type="submit" class="w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">เพิ่มนักเรียน</button>
+                    </form>
+                </div>
+
+                <!-- Students List -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">รายชื่อนักเรียน</h2>
+                    <div class="mb-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="searchStudent" placeholder="ค้นหาชื่อนักเรียน..." onkeyup="searchStudents()" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <select id="filterGrade" onchange="filterStudents()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">ทุกระดับ</option>
+                                <option value="อ.1">อ.1</option>
+                                <option value="อ.2">อ.2</option>
+                                <option value="อ.3">อ.3</option>
+                                <option value="ป.1">ป.1</option>
+                                <option value="ป.2">ป.2</option>
+                                <option value="ป.3">ป.3</option>
+                                <option value="ป.4">ป.4</option>
+                                <option value="ป.5">ป.5</option>
+                                <option value="ป.6">ป.6</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="studentsList" class="space-y-2 max-h-96 overflow-y-auto">
+                        <!-- Students will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bulk Remove Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">เอานักเรียนออกจากระบบ</h2>
+                <div class="grid md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น</label>
+                        <select id="removeGrade" onchange="updateRemoveStudentList()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- เลือกระดับชั้น --</option>
+                            <option value="อ.1">อ.1</option>
+                            <option value="อ.2">อ.2</option>
+                            <option value="อ.3">อ.3</option>
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน</label>
+                        <select id="removeRoom" onchange="updateRemoveStudentList()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- เลือกห้องเรียน --</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="toggleSelectAll()" id="selectAllBtn" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">เลือกทั้งหมด</button>
+                    </div>
+                </div>
+                <div id="removeStudentsList" class="space-y-2 max-h-64 overflow-y-auto mb-4 border border-gray-200 rounded-lg p-4">
+                    <p class="text-gray-500 text-center">เลือกระดับชั้นและห้องเรียนเพื่อแสดงรายชื่อนักเรียน</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="removeSelectedStudents()" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors">เอานักเรียนที่เลือกออกจากระบบ</button>
+                    <span id="selectedCount" class="flex items-center text-sm text-gray-600">เลือก 0 คน</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Tab -->
+        <div id="transactionContent" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">ฝาก/ถอนเงิน</h2>
+                <form onsubmit="processTransaction(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น</label>
+                        <select id="transactionGrade" onchange="updateTransactionStudentSelect()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกระดับ --</option>
+                            <option value="อ.1">อ.1</option>
+                            <option value="อ.2">อ.2</option>
+                            <option value="อ.3">อ.3</option>
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน</label>
+                        <select id="transactionRoom" onchange="updateTransactionStudentSelect()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกห้อง --</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">เลือกนักเรียน</label>
+                        <select id="transactionStudent" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- เลือกนักเรียน --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">วันที่ทำรายการ</label>
+                        <input type="date" id="transactionDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ประเภทรายการ</label>
+                        <select id="transactionType" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- เลือกประเภท --</option>
+                            <option value="deposit">ฝากเงิน</option>
+                            <option value="withdraw">ถอนเงิน</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนเงิน (บาท)</label>
+                        <input type="number" id="transactionAmount" min="1" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">หมายเหตุ (ถ้ามี)</label>
+                        <input type="text" id="transactionNote" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <button type="submit" class="w-full bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors">บันทึกรายการ</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Daily Summary Tab -->
+        <div id="summaryContent" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">สรุปรายวัน</h2>
+                <div class="grid md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">เลือกวันที่</label>
+                        <input type="date" id="summaryDate" onchange="generateDailySummary()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น</label>
+                        <select id="summaryGrade" onchange="generateDailySummary()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกระดับ --</option>
+                            <option value="อ.1">อ.1</option>
+                            <option value="อ.2">อ.2</option>
+                            <option value="อ.3">อ.3</option>
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน</label>
+                        <select id="summaryRoom" onchange="generateDailySummary()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกห้อง --</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="dailySummaryResult" class="space-y-4">
+                    <!-- Summary will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="historyContent" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">ประวัติการทำรายการ</h2>
+                <div class="grid md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ค้นหาตามนักเรียน</label>
+                        <select id="historyStudent" onchange="filterHistory()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกคน --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น</label>
+                        <select id="historyGrade" onchange="updateHistoryStudentSelect(); filterHistory()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกระดับ --</option>
+                            <option value="อ.1">อ.1</option>
+                            <option value="อ.2">อ.2</option>
+                            <option value="อ.3">อ.3</option>
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน</label>
+                        <select id="historyRoom" onchange="updateHistoryStudentSelect(); filterHistory()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกห้อง --</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ค้นหาตามวันที่</label>
+                        <input type="date" id="historyDate" onchange="filterHistory()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div id="historyResult" class="overflow-x-auto">
+                    <!-- History will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Tab -->
+        <div id="balanceContent" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">ยอดคงเหลือของนักเรียน</h2>
+                <div class="grid md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ระดับชั้น</label>
+                        <select id="balanceGrade" onchange="generateBalanceReport()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกระดับ --</option>
+                            <option value="อ.1">อ.1</option>
+                            <option value="อ.2">อ.2</option>
+                            <option value="อ.3">อ.3</option>
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ห้องเรียน</label>
+                        <select id="balanceRoom" onchange="generateBalanceReport()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">-- ทุกห้อง --</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="balanceResult" class="overflow-x-auto">
+                    <!-- Balance will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-purple-800 text-white py-4 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-lg mb-4">โรงเรียนสาธิตเทศบาลนครระยอง (วัดตรีรัตนาราม)</p>
+            <div class="flex flex-col md:flex-row justify-center items-center gap-6 text-gray-300">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                    </svg>
+                    <span>038-016934</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    <span>โรงเรียนสาธิตเทศบาลนครระยอง (วัดตรีรัตนาราม)</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+
+
+        // Authentication system
+        const validUsers = {};
+        
+        // Generate 72 teacher accounts
+        function generateTeacherAccounts() {
+            // Kindergarten (อนุบาล) - k1, k2, k3 with rooms 1-8 each = 24 accounts
+            for (let grade = 1; grade <= 3; grade++) {
+                for (let room = 1; room <= 8; room++) {
+                    const username = `teacherk${grade}${room}`;
+                    validUsers[username] = {
+                        password: username,
+                        displayName: `ครูอนุบาล ${grade}/${room}`,
+                        level: 'อ.' + grade,
+                        room: room.toString()
+                    };
+                }
+            }
+            
+            // Primary (ประถม) - p1, p2, p3, p4, p5, p6 with rooms 1-8 each = 48 accounts
+            for (let grade = 1; grade <= 6; grade++) {
+                for (let room = 1; room <= 8; room++) {
+                    const username = `teacherp${grade}${room}`;
+                    validUsers[username] = {
+                        password: username,
+                        displayName: `ครูประถม ${grade}/${room}`,
+                        level: 'ป.' + grade,
+                        room: room.toString()
+                    };
+                }
+            }
+        }
+        
+        // Initialize teacher accounts
+        generateTeacherAccounts();
+        
+        // Current user session
+        let currentUser = null;
+        
+        // Login function
+        function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            if (validUsers[username] && validUsers[username].password === password) {
+                currentUser = {
+                    username: username,
+                    ...validUsers[username],
+                    loginTime: new Date()
+                };
+                
+                // Store session
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // Hide login screen and show main app
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // Update user info display
+                updateUserDisplay();
+                
+                // Clear login form
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                errorDiv.classList.add('hidden');
+                
+            } else {
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 3000);
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
+                currentUser = null;
+                sessionStorage.removeItem('currentUser');
+                
+                // Show login screen and hide main app
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                
+                // Clear forms
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+        
+        // Update user display
+        function updateUserDisplay() {
+            if (currentUser) {
+                document.getElementById('currentUser').textContent = currentUser.displayName;
+                document.getElementById('loginTime').textContent = 
+                    'เข้าสู่ระบบ: ' + currentUser.loginTime.toLocaleString('th-TH');
+            }
+        }
+        
+        // Check session on page load
+        function checkSession() {
+            const savedUser = sessionStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                updateUserDisplay();
+            }
+        }
+
+        // Data storage
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already logged in
+            checkSession();
+            
+            document.getElementById('transactionDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('summaryDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('joinDate').value = new Date().toISOString().split('T')[0];
+            updateStudentsList();
+            updateTransactionStudentSelect();
+            updateHistoryStudentSelect();
+            generateDailySummary();
+            generateBalanceReport();
+            
+
+        });
+
+
+
+
+
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('button[id$="Tab"]').forEach(btn => {
+                btn.classList.remove('bg-purple-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + 'Content').classList.remove('hidden');
+            document.getElementById(tabName + 'Tab').classList.remove('bg-gray-200', 'text-gray-700');
+            document.getElementById(tabName + 'Tab').classList.add('bg-purple-500', 'text-white');
+
+            // Refresh data for specific tabs
+            if (tabName === 'history') filterHistory();
+            if (tabName === 'balance') generateBalanceReport();
+            if (tabName === 'summary') generateDailySummary();
+        }
+
+        // Student management
+        function addStudent(event) {
+            event.preventDefault();
+            const name = document.getElementById('studentName').value;
+            const grade = document.getElementById('studentGrade').value;
+            const room = document.getElementById('studentRoom').value;
+            const joinDate = document.getElementById('joinDate').value;
+            const className = grade + '/' + room;
+
+            // Generate student ID automatically
+            const id = Date.now().toString();
+
+            const student = {
+                id: id,
+                name: name,
+                class: className,
+                joinDate: joinDate,
+                balance: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            students.push(student);
+            localStorage.setItem('students', JSON.stringify(students));
+            
+            // Reset form
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentGrade').value = '';
+            document.getElementById('studentRoom').value = '';
+            document.getElementById('joinDate').value = new Date().toISOString().split('T')[0];
+
+            updateStudentsList();
+            updateTransactionStudentSelect();
+            updateHistoryStudentSelect();
+            alert('เพิ่มสมาชิกธนาคารขยะเรียบร้อยแล้ว');
+        }
+
+        function deleteStudent(studentId) {
+            if (confirm('คุณต้องการลบนักเรียนคนนี้หรือไม่?')) {
+                students = students.filter(s => s.id !== studentId);
+                transactions = transactions.filter(t => t.studentId !== studentId);
+                
+                localStorage.setItem('students', JSON.stringify(students));
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                
+                updateStudentsList();
+                updateTransactionStudentSelect();
+                updateHistoryStudentSelect();
+                generateBalanceReport();
+                alert('ลบนักเรียนเรียบร้อยแล้ว');
+            }
+        }
+
+        function updateStudentsList() {
+            const container = document.getElementById('studentsList');
+            if (students.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ยังไม่มีนักเรียนในระบบ</p>';
+                return;
+            }
+
+            let filteredStudents = students;
+            
+            // Apply search filter
+            const searchTerm = document.getElementById('searchStudent')?.value.toLowerCase() || '';
+            if (searchTerm) {
+                filteredStudents = filteredStudents.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Apply grade filter
+            const gradeFilter = document.getElementById('filterGrade')?.value || '';
+            if (gradeFilter) {
+                filteredStudents = filteredStudents.filter(student => {
+                    const [studentGrade] = student.class.split('/');
+                    return studentGrade === gradeFilter;
+                });
+            }
+
+            if (filteredStudents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ไม่พบนักเรียนที่ตรงกับเงื่อนไข</p>';
+                return;
+            }
+
+            container.innerHTML = filteredStudents.map(student => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="font-medium">${student.name}</div>
+                        <div class="text-sm text-gray-600">รหัส: ${student.id} | ชั้น: ${student.class} | ยอดคงเหลือ: ${student.balance.toLocaleString()} บาท</div>
+                    </div>
+                    <button onclick="deleteStudent('${student.id}')" class="text-red-500 hover:text-red-700 px-2 py-1 rounded">ลบ</button>
+                </div>
+            `).join('');
+        }
+
+        function searchStudents() {
+            updateStudentsList();
+        }
+
+        function filterStudents() {
+            updateStudentsList();
+        }
+
+        // Bulk removal functions
+        let selectedStudentsForRemoval = new Set();
+
+        function updateRemoveStudentList() {
+            const grade = document.getElementById('removeGrade').value;
+            const room = document.getElementById('removeRoom').value;
+            const container = document.getElementById('removeStudentsList');
+            
+            selectedStudentsForRemoval.clear();
+            updateSelectedCount();
+            
+            if (!grade || !room) {
+                container.innerHTML = '<p class="text-gray-500 text-center">เลือกระดับชั้นและห้องเรียนเพื่อแสดงรายชื่อนักเรียน</p>';
+                return;
+            }
+            
+            const filteredStudents = students.filter(student => {
+                const [studentGrade, studentRoom] = student.class.split('/');
+                return studentGrade === grade && studentRoom === room;
+            });
+            
+            if (filteredStudents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ไม่มีนักเรียนในชั้นเรียนนี้</p>';
+                return;
+            }
+            
+            container.innerHTML = filteredStudents.map(student => `
+                <div class="flex items-center p-2 bg-gray-50 rounded-lg">
+                    <input type="checkbox" id="student_${student.id}" onchange="toggleStudentSelection('${student.id}')" class="mr-3">
+                    <label for="student_${student.id}" class="flex-1 cursor-pointer">
+                        <div class="font-medium">${student.name}</div>
+                        <div class="text-sm text-gray-600">รหัส: ${student.id} | ยอดคงเหลือ: ${student.balance.toLocaleString()} บาท</div>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        function toggleStudentSelection(studentId) {
+            if (selectedStudentsForRemoval.has(studentId)) {
+                selectedStudentsForRemoval.delete(studentId);
+            } else {
+                selectedStudentsForRemoval.add(studentId);
+            }
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll() {
+            const grade = document.getElementById('removeGrade').value;
+            const room = document.getElementById('removeRoom').value;
+            
+            if (!grade || !room) return;
+            
+            const filteredStudents = students.filter(student => {
+                const [studentGrade, studentRoom] = student.class.split('/');
+                return studentGrade === grade && studentRoom === room;
+            });
+            
+            const allSelected = filteredStudents.every(student => selectedStudentsForRemoval.has(student.id));
+            
+            if (allSelected) {
+                // Deselect all
+                filteredStudents.forEach(student => {
+                    selectedStudentsForRemoval.delete(student.id);
+                    const checkbox = document.getElementById(`student_${student.id}`);
+                    if (checkbox) checkbox.checked = false;
+                });
+                document.getElementById('selectAllBtn').textContent = 'เลือกทั้งหมด';
+            } else {
+                // Select all
+                filteredStudents.forEach(student => {
+                    selectedStudentsForRemoval.add(student.id);
+                    const checkbox = document.getElementById(`student_${student.id}`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                document.getElementById('selectAllBtn').textContent = 'ยกเลิกทั้งหมด';
+            }
+            
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const count = selectedStudentsForRemoval.size;
+            document.getElementById('selectedCount').textContent = `เลือก ${count} คน`;
+            
+            // Update select all button text
+            const grade = document.getElementById('removeGrade').value;
+            const room = document.getElementById('removeRoom').value;
+            
+            if (grade && room) {
+                const filteredStudents = students.filter(student => {
+                    const [studentGrade, studentRoom] = student.class.split('/');
+                    return studentGrade === grade && studentRoom === room;
+                });
+                
+                const allSelected = filteredStudents.length > 0 && filteredStudents.every(student => selectedStudentsForRemoval.has(student.id));
+                document.getElementById('selectAllBtn').textContent = allSelected ? 'ยกเลิกทั้งหมด' : 'เลือกทั้งหมด';
+            }
+        }
+
+        function removeSelectedStudents() {
+            if (selectedStudentsForRemoval.size === 0) {
+                alert('กรุณาเลือกนักเรียนที่ต้องการเอาออกจากระบบ');
+                return;
+            }
+            
+            const selectedStudents = students.filter(s => selectedStudentsForRemoval.has(s.id));
+            const studentNames = selectedStudents.map(s => s.name).join(', ');
+            
+            if (confirm(`คุณต้องการเอานักเรียนต่อไปนี้ออกจากระบบหรือไม่?\n\n${studentNames}\n\nการดำเนินการนี้จะลบข้อมูลนักเรียนและประวัติการทำรายการทั้งหมด`)) {
+                // Remove students and their transactions
+                students = students.filter(s => !selectedStudentsForRemoval.has(s.id));
+                transactions = transactions.filter(t => !selectedStudentsForRemoval.has(t.studentId));
+                
+                localStorage.setItem('students', JSON.stringify(students));
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                
+                // Clear selection and reset form
+                selectedStudentsForRemoval.clear();
+                document.getElementById('removeGrade').value = '';
+                document.getElementById('removeRoom').value = '';
+                document.getElementById('removeStudentsList').innerHTML = '<p class="text-gray-500 text-center">เลือกระดับชั้นและห้องเรียนเพื่อแสดงรายชื่อนักเรียน</p>';
+                document.getElementById('selectedCount').textContent = 'เลือก 0 คน';
+                document.getElementById('selectAllBtn').textContent = 'เลือกทั้งหมด';
+                
+                // Update other displays
+                updateStudentsList();
+                updateTransactionStudentSelect();
+                updateHistoryStudentSelect();
+                generateBalanceReport();
+                
+                alert(`เอานักเรียน ${selectedStudents.length} คนออกจากระบบเรียบร้อยแล้ว`);
+            }
+        }
+
+        function updateTransactionStudentSelect() {
+            const grade = document.getElementById('transactionGrade').value;
+            const room = document.getElementById('transactionRoom').value;
+            const select = document.getElementById('transactionStudent');
+            
+            let options = '<option value="">-- เลือกนักเรียน --</option>';
+            
+            // Show only existing students (members only)
+            let filteredStudents = students;
+            
+            if (grade || room) {
+                filteredStudents = students.filter(student => {
+                    const [studentGrade, studentRoom] = student.class.split('/');
+                    
+                    if (grade && studentGrade !== grade) return false;
+                    if (room && studentRoom !== room) return false;
+                    
+                    return true;
+                });
+            }
+            
+            filteredStudents.forEach(student => {
+                options += `<option value="${student.id}">${student.name} (${student.class}) - ยอด: ${student.balance.toLocaleString()} บาท</option>`;
+            });
+            
+            select.innerHTML = options;
+        }
+
+        function updateHistoryStudentSelect() {
+            const grade = document.getElementById('historyGrade').value;
+            const room = document.getElementById('historyRoom').value;
+            const select = document.getElementById('historyStudent');
+            
+            let filteredStudents = students;
+            
+            if (grade || room) {
+                filteredStudents = students.filter(student => {
+                    const [studentGrade, studentRoom] = student.class.split('/');
+                    
+                    if (grade && studentGrade !== grade) return false;
+                    if (room && studentRoom !== room) return false;
+                    
+                    return true;
+                });
+            }
+            
+            let options = '<option value="">-- ทุกคน --</option>';
+            
+            // Add existing students only
+            filteredStudents.forEach(student => {
+                options += `<option value="${student.id}">${student.name} (${student.class})</option>`;
+            });
+            
+            select.innerHTML = options;
+        }
+
+        // Transaction processing
+        function processTransaction(event) {
+            event.preventDefault();
+            const studentId = document.getElementById('transactionStudent').value;
+            const date = document.getElementById('transactionDate').value;
+            const type = document.getElementById('transactionType').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const note = document.getElementById('transactionNote').value;
+
+            const student = students.find(s => s.id === studentId);
+            if (!student) {
+                alert('ไม่พบนักเรียน');
+                return;
+            }
+
+            // Check if withdrawal amount exceeds balance
+            if (type === 'withdraw' && amount > student.balance) {
+                alert('ยอดเงินไม่เพียงพอสำหรับการถอน');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now().toString(),
+                studentId: studentId,
+                studentName: student.name,
+                date: date,
+                type: type,
+                amount: amount,
+                note: note,
+                timestamp: new Date().toISOString()
+            };
+
+            transactions.push(transaction);
+
+            // Update student balance
+            if (type === 'deposit') {
+                student.balance += amount;
+            } else {
+                student.balance -= amount;
+            }
+
+            localStorage.setItem('students', JSON.stringify(students));
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            // Reset form
+            document.getElementById('transactionStudent').value = '';
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionNote').value = '';
+
+            alert(`${type === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}เรียบร้อยแล้ว จำนวน ${amount.toLocaleString()} บาท`);
+        }
+
+        // Daily summary
+        function generateDailySummary() {
+            const date = document.getElementById('summaryDate').value;
+            const grade = document.getElementById('summaryGrade').value;
+            const room = document.getElementById('summaryRoom').value;
+            if (!date) return;
+
+            let dayTransactions = transactions.filter(t => t.date === date);
+
+            if (grade || room) {
+                dayTransactions = dayTransactions.filter(t => {
+                    const student = students.find(s => s.id === t.studentId);
+                    if (!student) return false;
+                    
+                    const [studentGrade, studentRoom] = student.class.split('/');
+                    
+                    if (grade && studentGrade !== grade) return false;
+                    if (room && studentRoom !== room) return false;
+                    
+                    return true;
+                });
+            }
+
+            const container = document.getElementById('dailySummaryResult');
+
+            if (dayTransactions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ไม่มีรายการในวันที่เลือก</p>';
+                return;
+            }
+
+            const deposits = dayTransactions.filter(t => t.type === 'deposit');
+            const withdrawals = dayTransactions.filter(t => t.type === 'withdraw');
+            const totalDeposit = deposits.reduce((sum, t) => sum + t.amount, 0);
+            const totalWithdraw = withdrawals.reduce((sum, t) => sum + t.amount, 0);
+
+            container.innerHTML = `
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-green-800">ยอดฝากรวม</h3>
+                        <p class="text-2xl font-bold text-green-600">${totalDeposit.toLocaleString()} บาท</p>
+                        <p class="text-sm text-green-600">${deposits.length} รายการ</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-red-800">ยอดถอนรวม</h3>
+                        <p class="text-2xl font-bold text-red-600">${totalWithdraw.toLocaleString()} บาท</p>
+                        <p class="text-sm text-red-600">${withdrawals.length} รายการ</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-blue-800">ยอดสุทธิ</h3>
+                        <p class="text-2xl font-bold text-blue-600">${(totalDeposit - totalWithdraw).toLocaleString()} บาท</p>
+                        <p class="text-sm text-blue-600">${dayTransactions.length} รายการรวม</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="border border-gray-300 px-4 py-2 text-left">เวลา</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">นักเรียน</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">ประเภท</th>
+                                <th class="border border-gray-300 px-4 py-2 text-right">จำนวน</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dayTransactions.map(t => `
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">${new Date(t.timestamp).toLocaleTimeString('th-TH')}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${t.studentName}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        <span class="px-2 py-1 rounded text-sm ${t.type === 'deposit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                            ${t.type === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}
+                                        </span>
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2 text-right">${t.amount.toLocaleString()}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${t.note || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // History filtering
+        function filterHistory() {
+            const studentId = document.getElementById('historyStudent').value;
+            const grade = document.getElementById('historyGrade').value;
+            const room = document.getElementById('historyRoom').value;
+            const date = document.getElementById('historyDate').value;
+            const container = document.getElementById('historyResult');
+
+            let filteredTransactions = transactions;
+
+            if (studentId) {
+                filteredTransactions = filteredTransactions.filter(t => t.studentId === studentId);
+            }
+
+            if (grade || room) {
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const student = students.find(s => s.id === t.studentId);
+                    if (!student) return false;
+                    
+                    const [studentGrade, studentRoom] = student.class.split('/');
+                    
+                    if (grade && studentGrade !== grade) return false;
+                    if (room && studentRoom !== room) return false;
+                    
+                    return true;
+                });
+            }
+
+            if (date) {
+                filteredTransactions = filteredTransactions.filter(t => t.date === date);
+            }
+
+            if (filteredTransactions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ไม่พบรายการที่ตรงกับเงื่อนไข</p>';
+                return;
+            }
+
+            // Sort by timestamp descending
+            filteredTransactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            container.innerHTML = `
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="border border-gray-300 px-4 py-2 text-left">วันที่</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">เวลา</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">นักเรียน</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">ชั้นเรียน</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">ประเภท</th>
+                            <th class="border border-gray-300 px-4 py-2 text-right">จำนวน</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">หมายเหตุ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredTransactions.map(t => {
+                            const student = students.find(s => s.id === t.studentId);
+                            return `
+                            <tr>
+                                <td class="border border-gray-300 px-4 py-2">${new Date(t.date).toLocaleDateString('th-TH')}</td>
+                                <td class="border border-gray-300 px-4 py-2">${new Date(t.timestamp).toLocaleTimeString('th-TH')}</td>
+                                <td class="border border-gray-300 px-4 py-2">${t.studentName}</td>
+                                <td class="border border-gray-300 px-4 py-2">${student ? student.class : '-'}</td>
+                                <td class="border border-gray-300 px-4 py-2">
+                                    <span class="px-2 py-1 rounded text-sm ${t.type === 'deposit' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${t.type === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'}
+                                    </span>
+                                </td>
+                                <td class="border border-gray-300 px-4 py-2 text-right">${t.amount.toLocaleString()}</td>
+                                <td class="border border-gray-300 px-4 py-2">${t.note || '-'}</td>
+                            </tr>
+                        `}).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Balance report
+        function generateBalanceReport() {
+            const grade = document.getElementById('balanceGrade').value;
+            const room = document.getElementById('balanceRoom').value;
+            const container = document.getElementById('balanceResult');
+
+            if (students.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ยังไม่มีนักเรียนในระบบ</p>';
+                return;
+            }
+
+            let filteredStudents = students;
+
+            if (grade || room) {
+                filteredStudents = students.filter(student => {
+                    const [studentGrade, studentRoom] = student.class.split('/');
+                    
+                    if (grade && studentGrade !== grade) return false;
+                    if (room && studentRoom !== room) return false;
+                    
+                    return true;
+                });
+            }
+
+            if (filteredStudents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">ไม่พบนักเรียนที่ตรงกับเงื่อนไข</p>';
+                return;
+            }
+
+            // Sort students by balance descending
+            const sortedStudents = [...filteredStudents].sort((a, b) => b.balance - a.balance);
+            const totalBalance = filteredStudents.reduce((sum, s) => sum + s.balance, 0);
+
+            container.innerHTML = `
+                <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="font-semibold text-blue-800">ยอดรวมทั้งหมด</h3>
+                    <p class="text-2xl font-bold text-blue-600">${totalBalance.toLocaleString()} บาท</p>
+                </div>
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="border border-gray-300 px-4 py-2 text-left">รหัสสมาชิก</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">ชื่อ-นามสกุล</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">ชั้นเรียน</th>
+                            <th class="border border-gray-300 px-4 py-2 text-left">วันที่เข้าร่วม</th>
+                            <th class="border border-gray-300 px-4 py-2 text-right">ยอดคงเหลือ</th>
+                            <th class="border border-gray-300 px-4 py-2 text-center">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sortedStudents.map(student => `
+                            <tr>
+                                <td class="border border-gray-300 px-4 py-2">${student.id}</td>
+                                <td class="border border-gray-300 px-4 py-2">${student.name}</td>
+                                <td class="border border-gray-300 px-4 py-2">${student.class}</td>
+                                <td class="border border-gray-300 px-4 py-2">${student.joinDate ? new Date(student.joinDate).toLocaleDateString('th-TH') : '-'}</td>
+                                <td class="border border-gray-300 px-4 py-2 text-right font-semibold ${student.balance > 0 ? 'text-green-600' : student.balance < 0 ? 'text-red-600' : 'text-gray-600'}">${student.balance.toLocaleString()}</td>
+                                <td class="border border-gray-300 px-4 py-2 text-center">
+                                    <span class="px-2 py-1 rounded text-sm ${student.balance > 0 ? 'bg-green-100 text-green-800' : student.balance < 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}">
+                                        ${student.balance > 0 ? 'มีเงินฝาก' : student.balance < 0 ? 'ติดลบ' : 'ไม่มียอด'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Export data to CSV
+        function exportData() {
+            const csvContent = '\uFEFF' + generateCSV();
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `student_savings_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function generateCSV() {
+            let csv = 'ประเภทข้อมูล,รหัสนักเรียน,ชื่อ-นามสกุล,ชั้นเรียน,วันที่,ประเภทรายการ,จำนวนเงิน,ยอดคงเหลือ,หมายเหตุ\n';
+            
+            // Add student data
+            students.forEach(student => {
+                csv += `ข้อมูลนักเรียน,${student.id},"${student.name}",${student.class},,,,"${student.balance}",\n`;
+            });
+
+            // Add transaction data
+            transactions.forEach(transaction => {
+                const student = students.find(s => s.id === transaction.studentId);
+                csv += `รายการทำรายการ,${transaction.studentId},"${transaction.studentName}",${student ? student.class : ''},${transaction.date},${transaction.type === 'deposit' ? 'ฝากเงิน' : 'ถอนเงิน'},"${transaction.amount}",,${transaction.note || ''}\n`;
+            });
+
+            return csv;
+        }
+
+
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96659ecb923e7b62',t:'MTc1MzcxODc1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
